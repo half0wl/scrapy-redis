@@ -143,7 +143,7 @@ class Scheduler(object):
                     debug=spider.settings.getbool('DUPEFILTER_DEBUG'),
                 )
             else:
-                self.df = load_object(self.dupefilter_cls)
+                self.df = load_object(self.dupefilter_cls)()
         except TypeError as e:
             raise ValueError("Failed to instantiate dupefilter class '%s': %s",
                              self.dupefilter_cls, e)
