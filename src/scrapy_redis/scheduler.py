@@ -133,12 +133,17 @@ class Scheduler(object):
         except TypeError as e:
             raise ValueError(f"Failed to instantiate queue class '{self.queue_cls}': {e}")
 
+        # @FIXME: Hack around how dupefilters are instantiated; the interface
+        # for scrapy's dupefilters is different than the Redis dupefilter.
         try:
-            self.df = load_object(self.dupefilter_cls)(
-                server=self.server,
-                key=self.dupefilter_key % {'spider': spider.name},
-                debug=spider.settings.getbool('DUPEFILTER_DEBUG'),
-            )
+            if self.dupefilter_cls == 'scrapy_redis.dupefilter.RFPDupeFilter':
+                self.df = load_object(self.dupefilter_cls)(
+                    server=self.server,
+                    key=self.dupefilter_key % {'spider': spider.name},
+                    debug=spider.settings.getbool('DUPEFILTER_DEBUG'),
+                )
+            else:
+                self.df = load_object(self.dupefilter_cls)
         except TypeError as e:
             raise ValueError("Failed to instantiate dupefilter class '%s': %s",
                              self.dupefilter_cls, e)
