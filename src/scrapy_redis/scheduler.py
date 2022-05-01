@@ -133,7 +133,15 @@ class Scheduler(object):
         except TypeError as e:
             raise ValueError(f"Failed to instantiate queue class '{self.queue_cls}': {e}")
 
-        self.df = load_object(self.dupefilter_cls).from_spider(spider)
+        try:
+            self.df = load_object(self.dupefilter_cls)(
+                server=self.server,
+                key=self.dupefilter_key % {'spider': spider.name},
+                debug=spider.settings.getbool('DUPEFILTER_DEBUG'),
+            )
+        except TypeError as e:
+            raise ValueError("Failed to instantiate dupefilter class '%s': %s",
+                             self.dupefilter_cls, e)
 
         if self.flush_on_start:
             self.flush()
